@@ -142,57 +142,74 @@ _(Lista inicial — pode crescer conforme novas telas/ações forem definidas.)_
 - Menu lateral fixo à esquerda com: Sair, Usuário (perfil próprio), Usuários, Permissões, Tipos de Item, Itens, Pedidos de Compra.
 - Botão "Novo Pedido".
 - Lista de pedidos (padrão: todos os status), com filtros por status, data e nome de quem retirou o item.
-- Paginação de (20, 50, 70, 100)
 
 ### 4.2 Novo Pedido (modal)
 
 **História de usuário**
 
-> Como almoxarife, quero registrar um novo pedido de empréstimo informando quem vai retirar os itens e os itens necessários, para controlar a saída de material. O acompanhamento do andamento (saída, devolução) é feito depois, por edição do pedido, através do status.
+> Como almoxarife, quero registrar um novo pedido de empréstimo informando quem vai receber os itens e os itens necessários, para controlar a saída de material. O acompanhamento do andamento (saída, devolução) é feito depois, por edição do pedido, através do status — inclusive quando o material não retorna integralmente (ex.: itens de consumo como tinta, fita, papel, ou EPI, junto com itens que retornam, como uma ferramenta).
 
-**Campos do modal:**
+**Campos do modal (criação):**
 | Campo | Tipo | Observação |
 |---|---|---|
-| Nome do usuário | Texto/Referência | Quem está retirando |
+| Nome | Texto/Referência | Quem vai receber o pedido |
 | Descrição | Texto | Opcional |
-| Itens do pedido | Lista | Mesma listagem padrão de itens, mas sem os inativos, com botão "Adicionar" |
+| Itens do pedido | Lista | Mesma listagem padrão de itens, mas sem os inativos, com botão "Adicionar" (item + quantidade retirada) |
 | Status | Enum | Campo desabilitado na criação, sempre pré-selecionado como "Pendente" |
+
+**Fluxo de status e edição do pedido:**
+
+1. **Pendente** (status inicial, ao criar): nome, descrição, itens e quantidades ainda podem ser editados livremente. A partir daqui o status só pode ir para **Em campo** ou **Cancelado**.
+2. **Em campo**: ao mudar para esse status, o pedido inteiro **trava** (nome, descrição e itens não podem mais ser alterados) e o sistema registra a data de saída real. A única ação possível a partir daqui é mudar o status para **Voltou**.
+3. **Voltou**: ação **única e definitiva** de fechamento do pedido (não existe devolução parcial em etapas — todo o acerto de quantidades é feito de uma vez, nessa transição).
+4. **Cancelado**: só pode ser aplicado enquanto o pedido está em **Pendente** (antes de ir a campo). Depois de "Em campo" o pedido não pode mais ser cancelado, só fechado com "Voltou".
+
+**Tela de edição do pedido:** permite mudar o status, o nome, a descrição, e adicionar/editar/remover itens da lista — respeitando as travas de cada status (detalhadas abaixo). A lista de itens mostra nome, tipo e quantidade emprestada, com um ícone de opções por linha; a única opção nele é **"Editar"**, que abre o modal de edição daquele item.
+
+**Modal de edição de item (dentro do pedido), por status do pedido:**
+
+| Status do pedido                   | Campos mostrados                                                                   | Editável                                   | Botões                         |
+| ---------------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------ | ------------------------------ |
+| **Pendente**                       | Nome do item, Tipo (ambos travados — vêm do cadastro), Quantidade emprestada       | Quantidade emprestada                      | Cancelar, Salvar, **Remover**  |
+| **Em campo**                       | —                                                                                  | Pedido travado, modal de item não é aberto | —                              |
+| **Em campo → mudando para Voltou** | Nome, Tipo, Quantidade emprestada (travada), **Quantidade devolvida** (novo campo) | Quantidade devolvida                       | Cancelar, Salvar (sem Remover) |
+
+> **Importante:** ao abrir o modal de edição do item nessa etapa (pedido indo para "Voltou"), o campo **"Quantidade devolvida" inicia como `null` (vazio na tela), nunca como `0` ou em branco por acaso**. Isso é o que permite diferenciar "usuário ainda não informou quanto voltou" de "usuário informou que voltou 0" (caso de item consumível/EPI que não retorna) — ver RN19 e RN20.
 
 **Regras de negócio:**
 
-- RN10: Ao mudar o status para **"Em campo"**, o sistema registra a data de saída real.
+- RN10: Ao mudar o status para **"Em campo"**, o sistema registra a data de saída real e trava o pedido inteiro (nome, descrição e itens) — RN18.
 - RN11: Ao mudar o status para **"Voltou"**, o sistema registra a data de entrega real.
-- RN12: Pedido nunca pode ser excluído, apenas editado (mudança de status, dados, itens etc.).
-- RN17: Os campos de data prevista de saída e data prevista de volta **foram removidos** do cadastro do pedido. A data exibida para o pedido (na listagem e nos filtros) passa a ser a data da **última atualização de status** do pedido. Para registrar a saída efetiva, o almoxarife edita o pedido e muda o status para "Em campo"; para registrar a devolução, muda para "Voltou".
+- RN12: Pedido nunca pode ser excluído, apenas editado (mudança de status, dados, itens etc., respeitando as travas de cada etapa).
+- RN17: Os campos de data prevista de saída e data prevista de volta **foram removidos** do cadastro do pedido. A data exibida para o pedido (na listagem e nos filtros) passa a ser a data da **última atualização de status** do pedido.
+- RN18: Nome, descrição e a lista de itens (adicionar/remover item, alterar quantidade retirada) só podem ser editados enquanto o pedido está **Pendente**. Ao entrar em **Em campo**, tudo isso fica travado — a única mudança possível é o status para "Voltou".
+- RN19: Ao selecionar o status **"Voltou"**, a tabela de itens do pedido ganha a coluna **"Voltou"**, e o modal de cada item passa a exibir o campo obrigatório "quantidade devolvida" (a opção Remover deixa de existir). O campo **inicia como `null`** (não como `0`) — o valor final informado deve ser **maior ou igual a zero e menor ou igual à quantidade emprestada** daquele item (não pode devolver mais do que pegou). Itens que não retornam (consumíveis, EPI etc.) recebem quantidade devolvida "0", informado explicitamente pelo usuário.
+- RN20: O pedido só pode ser **salvo** com o status "Voltou" quando a quantidade devolvida de **todos** os itens da lista tiver sido informada — validação tudo-ou-nada. A validação verifica **presença de valor** (`quantidadeDevolvida !== null`), e não se o valor é "verdadeiro"/diferente de zero — assim um item com devolução `0` conta como informado, mas um item cujo campo nunca foi tocado (ainda `null`) bloqueia o salvamento.
+- RN21: Ao confirmar "Voltou", para cada item: `qtdEstoque += quantidade devolvida` e `qtdEmprestada -= quantidade retirada` (a diferença entre retirado e devolvido — ex.: pegou 10, devolveu 5 — é baixa permanente do estoque, cobrindo o caso de itens consumíveis/EPI que não retornam, sem precisar de um campo "retornável" no cadastro do item).
+- RN22: Cancelar um pedido (status "Cancelado") só é permitido a partir do status **Pendente**. A partir de "Em campo" essa opção não fica mais disponível.
 
 **Status do pedido de empréstimo:**
 
-Em vez de criar uma tela para cadastrar status dinamicamente (o que geraria complexidade desnecessária — teria que garantir que sempre exista um status "inicial" e um "final", e as regras RN10/RN11 dependem de status com nomes específicos no código), a sugestão é usar uma **lista fixa de status já no sistema** (enum), com um pequeno texto de apoio para o usuário entender cada um:
+Em vez de criar uma tela para cadastrar status dinamicamente (o que geraria complexidade desnecessária — teria que garantir que sempre exista um status "inicial" e um "final", e as regras RN10/RN11/RN19/RN20/RN21 dependem de status com nomes específicos no código), a sugestão é usar uma **lista fixa de status já no sistema** (enum), com um pequeno texto de apoio para o usuário entender cada um:
 
-| Status        | Quando ocorre                     | Efeito automático             | Cor           | Hex       |
-| ------------- | --------------------------------- | ----------------------------- | ------------- | --------- |
-| **Pendente**  | Status inicial, ao criar o pedido | —                             | Amarelo/Âmbar | `#F59E0B` |
-| **Em campo**  | Item(ns) efetivamente retirado(s) | Registra data de saída real   | Azul          | `#3B82F6` |
-| **Voltou**    | Item(ns) devolvido(s)             | Registra data de entrega real | Verde         | `#22C55E` |
-| **Cancelado** | Pedido cancelado antes de sair    | —                             | Vermelho      | `#EF4444` |
+| Status        | Quando ocorre                     | Efeito automático                                             | Transições possíveis | Cor           | Hex       |
+| ------------- | --------------------------------- | ------------------------------------------------------------- | -------------------- | ------------- | --------- |
+| **Pendente**  | Status inicial, ao criar o pedido | —                                                             | Em campo, Cancelado  | Amarelo/Âmbar | `#F59E0B` |
+| **Em campo**  | Item(ns) efetivamente retirado(s) | Registra data de saída real; trava nome, descrição e itens    | Voltou               | Azul          | `#3B82F6` |
+| **Voltou**    | Fechamento do pedido              | Registra data de entrega real; baixa/retorna estoque por item | — (final)            | Verde         | `#22C55E` |
+| **Cancelado** | Pedido cancelado antes de sair    | —                                                             | — (final)            | Vermelho      | `#EF4444` |
 
 Isso mantém a regra de negócio simples: o código sabe exatamente o que "Em campo" e "Voltou" significam. Se no futuro fizer sentido, dá pra permitir apenas a **descrição** de cada status ser editável (não o nome/comportamento), sem abrir uma tela de CRUD completa de status.
 
 ### 4.3 Listagem de Pedidos
 
-**Colunas/filtros:** status (padrão: todos), data (referente à última atualização de status), nome de quem pegou.
+**Colunas/filtros:** status (padrão: todos), data (referente à última atualização de status), nome de quem recebeu o pedido.
 **Ação disponível:** clicar para editar o pedido (nunca excluir).
 
 ### 4.4 Página de Itens
 
 **Listagem:** nome, quantidade disponível, quantidade emprestada — incluindo itens inativos.
 **Ação:** edição do item disponível apenas para usuários com a permissão correspondente.
-
-**Elementos da Home:**
-
-- Lista de itens
-- Filtro por nome do item, tipo, status(ativo, inativo)
-- Paginação de (20, 50, 70, 100)
 
 ---
 
@@ -250,13 +267,16 @@ Item
  └─ ativo (bool)
 
 Pedido (empréstimo)
- ├─ usuario (FK - quem retira)
+ ├─ usuario (FK - quem recebe)
  ├─ descricao
  ├─ status (Pendente | Em campo | Voltou | Cancelado)
  ├─ dataUltimaAtualizacaoStatus
  ├─ dataSaidaReal
  ├─ dataVoltaReal
- └─ itens[] (FK Item + quantidade)
+ └─ itens[]
+     ├─ item (FK)
+     ├─ quantidadeRetirada
+     └─ quantidadeDevolvida (nullable; null até ser informada; 0 ≤ devolvida ≤ retirada quando preenchida)
 
 PedidoCompra
  ├─ solicitante (FK Usuário)
