@@ -4,7 +4,7 @@
 
 Sistema web para gestão de almoxarifado, permitindo controle de usuários e permissões, cadastro de itens e tipos de itens, e o fluxo de empréstimo (saída/devolução) e compra de materiais.
 
-**Perfis de acesso padrão (protegidos, não podem ser excluídos nem editados):**
+**Perfis de acesso do sistema (fixos, definidos em código — não é possível criar, editar nem excluir perfis):**
 
 - Root
 - Supervisor
@@ -17,43 +17,25 @@ Sistema web para gestão de almoxarifado, permitindo controle de usuários e per
 
 ### 2.1 Permissões
 
-**História de usuário**
+Os perfis de acesso são **fixos** (enum no sistema, não uma entidade cadastrável). Não existe tela de cadastro, edição ou exclusão de permissões — o conjunto de ações liberadas para cada um dos 4 perfis é definido em código, conforme a matriz abaixo.
 
-> Como administrador do sistema, quero cadastrar perfis de permissão personalizados, definindo quais ações do sistema cada perfil pode executar, para controlar o acesso de cada usuário.
-
-**Ações:** Cadastrar, editar, excluir (perfis criados pelo usuário).
-
-**Campos:**
-| Campo | Tipo | Observação |
-|---|---|---|
-| Título | Texto | Nome do perfil |
-| Ações permitidas | Lista de booleanos | Uma entrada true/false para cada ação existente no sistema |
-
-**Regras de negócio:**
-
-- RN01: Os 4 perfis padrão (root, supervisor, almoxarife chefe, almoxarife auxiliar) não podem ser excluídos.
-- RN02: Os perfis padrão são travados por completo — nem título nem ações podem ser editados. O botão/ação de editar nem deve aparecer na listagem para esses 4 perfis.
-- RN02b: Uma permissão criada pelo usuário só pode ser excluída se **não estiver em uso** por nenhum usuário no momento.
-
-**Lista de ações do sistema (itens da lista true/false):**
+**Lista de ações do sistema (usadas internamente para checagem de permissão):**
 
 | Grupo               | Ação                                                                         |
 | ------------------- | ---------------------------------------------------------------------------- |
 | Usuários            | `usuario.criar`, `usuario.editar`, `usuario.inativar`, `usuario.deletar`     |
-| Permissões          | `permissao.criar`, `permissao.editar`, `permissao.deletar`                   |
 | Tipo de Item        | `tipoItem.criar`, `tipoItem.editar`, `tipoItem.inativar`, `tipoItem.deletar` |
 | Item                | `item.criar`, `item.editar`, `item.inativar`                                 |
 | Pedido (empréstimo) | `pedido.criar`, `pedido.editar`                                              |
 | Pedido de Compra    | `pedidoCompra.criar`, `pedidoCompra.editar`, `pedidoCompra.aprovar`          |
 
-_(Lista inicial — pode crescer conforme novas telas/ações forem definidas.)_
+_(Lista inicial — pode crescer conforme novas telas/ações forem definidas. Alterações nessa matriz são feitas em código, não pelo usuário do sistema.)_
 
-**Matriz de permissões de fábrica dos perfis padrão:**
+**Matriz de permissões dos perfis:**
 
 | Ação                                           | Root | Supervisor | Almoxarife Chefe | Almoxarife Auxiliar |
 | ---------------------------------------------- | :--: | :--------: | :--------------: | :-----------------: |
 | `usuario.*`                                    |  ✅  |     ✅     |        ✅        |         ❌          |
-| `permissao.*`                                  |  ✅  |     ❌     |        ❌        |         ❌          |
 | `tipoItem.*`                                   |  ✅  |     ✅     |        ✅        |         ❌          |
 | `item.criar` / `item.editar` / `item.inativar` |  ✅  |     ✅     |        ✅        |         ✅          |
 | `pedido.criar` / `pedido.editar`               |  ✅  |     ✅     |        ✅        |         ✅          |
@@ -74,7 +56,7 @@ _(Lista inicial — pode crescer conforme novas telas/ações forem definidas.)_
 | Nome | Texto | |
 | Email | Texto | Login do sistema |
 | Senha | Texto (hash) | |
-| Permissão | Referência | Vínculo com o perfil de permissão |
+| Perfil | Enum | Um dos 4 perfis fixos (root, supervisor, almoxarife chefe, almoxarife auxiliar) |
 | Cargo na empresa | Texto | |
 
 **Regras de negócio:**
@@ -90,7 +72,7 @@ _(Lista inicial — pode crescer conforme novas telas/ações forem definidas.)_
 
 **História de usuário**
 
-> Como almoxarife, quero organizar os itens por tipo (ex.: eletrônico, tinta), com uma breve descrição, podendo inativar tipos que não uso mais sem perder o histórico dos itens já cadastrados nesse tipo.
+> Como almoxarife, quero organizar os itens por tipo (ex.: eletrônico, tinta), podendo inativar tipos que não uso mais sem perder o histórico dos itens já cadastrados nesse tipo.
 
 **Ações:** Cadastrar, editar, inativar, excluir.
 
@@ -98,7 +80,6 @@ _(Lista inicial — pode crescer conforme novas telas/ações forem definidas.)_
 | Campo | Tipo |
 |---|---|
 | Nome do tipo | Texto |
-| Descrição | Texto |
 
 **Regras de negócio:**
 
@@ -139,7 +120,7 @@ _(Lista inicial — pode crescer conforme novas telas/ações forem definidas.)_
 
 **Elementos da Home:**
 
-- Menu lateral fixo à esquerda com: Sair, Usuário (perfil próprio), Usuários, Permissões, Tipos de Item, Itens, Pedidos de Compra.
+- Menu lateral fixo à esquerda com: Sair, Usuário (perfil próprio), Usuários, Tipos de Item, Itens, Pedidos de Compra.
 - Botão "Novo Pedido".
 - Lista de pedidos (padrão: todos os status), com filtros por status, data e nome de quem retirou o item.
 
@@ -242,15 +223,11 @@ Isso mantém a regra de negócio simples: o código sabe exatamente o que "Em ca
 ## 6. Resumo das Entidades
 
 ```
-Permissão
- ├─ título
- └─ ações[] (bool)
-
 Usuário
  ├─ nome
  ├─ email
  ├─ senha
- ├─ permissão (FK)
+ ├─ perfil (enum: root | supervisor | almoxarifeChefe | almoxarifeAuxiliar)
  ├─ cargo
  └─ ativo (bool)
 
