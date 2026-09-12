@@ -2,7 +2,7 @@
 
 ## 1. Visão Geral
 
-Sistema web para gestão de almoxarifado, permitindo controle de usuários e permissões, cadastro de itens e tipos de itens, e o fluxo de empréstimo (saída/devolução) e compra de materiais.
+Sistema web para gestão de almoxarifado, permitindo controle de usuários e permissões, cadastro de itens e tipos de itens, e o fluxo de empréstimo (saída/devolução) de materiais.
 
 **Perfis de acesso do sistema (fixos, definidos em código — não é possível criar, editar nem excluir perfis):**
 
@@ -27,7 +27,6 @@ Os perfis de acesso são **fixos** (enum no sistema, não uma entidade cadastrá
 | Tipo de Item        | `tipoItem.criar`, `tipoItem.editar`, `tipoItem.inativar`, `tipoItem.deletar` |
 | Item                | `item.criar`, `item.editar`, `item.inativar`                                 |
 | Pedido (empréstimo) | `pedido.criar`, `pedido.editar`                                              |
-| Pedido de Compra    | `pedidoCompra.criar`, `pedidoCompra.editar`, `pedidoCompra.aprovar`          |
 
 _(Lista inicial — pode crescer conforme novas telas/ações forem definidas. Alterações nessa matriz são feitas em código, não pelo usuário do sistema.)_
 
@@ -39,8 +38,6 @@ _(Lista inicial — pode crescer conforme novas telas/ações forem definidas. A
 | `tipoItem.*`                                   |  ✅  |     ✅     |        ✅        |         ❌          |
 | `item.criar` / `item.editar` / `item.inativar` |  ✅  |     ✅     |        ✅        |         ✅          |
 | `pedido.criar` / `pedido.editar`               |  ✅  |     ✅     |        ✅        |         ✅          |
-| `pedidoCompra.criar` / `pedidoCompra.editar`   |  ✅  |     ✅     |        ✅        |         ❌          |
-| `pedidoCompra.aprovar`                         |  ✅  |     ✅     |        ❌        |         ❌          |
 
 ### 2.2 Usuários
 
@@ -120,7 +117,7 @@ _(Lista inicial — pode crescer conforme novas telas/ações forem definidas. A
 
 **Elementos da Home:**
 
-- Menu lateral fixo à esquerda com: Sair, Usuário (perfil próprio), Usuários, Tipos de Item, Itens, Pedidos de Compra.
+- Menu lateral fixo à esquerda com: Sair, Usuário (perfil próprio), Usuários, Tipos de Item, Itens.
 - Botão "Novo Pedido".
 - Lista de pedidos (padrão: todos os status), com filtros por status, data e nome de quem retirou o item.
 
@@ -194,33 +191,7 @@ Isso mantém a regra de negócio simples: o código sabe exatamente o que "Em ca
 
 ---
 
-## 5. Módulo: Pedidos de Compra
-
-**História de usuário**
-
-> Como usuário do sistema, quero solicitar a compra de um material descrevendo livremente o que preciso, para que o supervisor avalie e aprove a compra.
-
-**Acesso:** botão próprio no menu lateral, levando à lista de pedidos de compra.
-
-**Ações:** Cadastrar e editar (Supervisor e Almoxarife Chefe), aprovar/reprovar (somente Supervisor).
-
-**Campos:**
-| Campo | Tipo | Observação |
-|---|---|---|
-| Solicitante | Referência | Usuário do sistema logado — preenchido automaticamente (nome + email) |
-| Pedido | Texto livre | Descrição livre do que está sendo solicitado (mais flexível que uma lista estruturada de itens) |
-| Status | Enum | **Novo → Em análise → Aprovado / Reprovado** |
-
-**Regras de negócio:**
-
-- RN13: Somente **Supervisor** pode aprovar ou reprovar um pedido de compra. Tanto **Supervisor** quanto **Almoxarife Chefe** podem criar um pedido de compra.
-- RN14: Pedido de compra é criado sempre com status **"Novo"**.
-- RN15: O solicitante pode editar o pedido livremente enquanto o status estiver **"Novo"**. Assim que o status muda para **"Em análise"**, o pedido fica travado para edição (só o Supervisor pode então mudar o status para Aprovado/Reprovado).
-- RN16: Pedido de compra **Reprovado** fica apenas como histórico — não pode ser reaberto nem duplicado automaticamente pelo solicitante (se ele quiser pedir de novo, cria um pedido novo do zero).
-
----
-
-## 6. Resumo das Entidades
+## 5. Resumo das Entidades
 
 ```
 Usuário
@@ -254,9 +225,4 @@ Pedido (empréstimo)
      ├─ item (FK)
      ├─ quantidadeRetirada
      └─ quantidadeDevolvida (nullable; null até ser informada; 0 ≤ devolvida ≤ retirada quando preenchida)
-
-PedidoCompra
- ├─ solicitante (FK Usuário)
- ├─ pedido (texto livre)
- └─ status (Novo | Em análise | Aprovado | Reprovado)
 ```
