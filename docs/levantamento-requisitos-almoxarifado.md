@@ -57,10 +57,10 @@ _(Lista inicial — pode crescer conforme novas telas/ações forem definidas. A
 | Email | Texto | Login do sistema |
 | Senha | Texto (hash) | |
 | Perfil | Enum | Um dos 4 perfis fixos (root, supervisor, almoxarife chefe, almoxarife auxiliar) |
-| Cargo na empresa | Texto | |
 
 **Regras de negócio:**
 
+- RN02: Usuário criado só pode ser deletado caso não tenha registros por ele
 - RN03: Usuário inativo não deve conseguir logar no sistema.
 - RN04: Usuário inativo continua aparecendo normalmente no histórico dos pedidos já feitos por ele (não é removido nem ocultado dos registros antigos).
 
