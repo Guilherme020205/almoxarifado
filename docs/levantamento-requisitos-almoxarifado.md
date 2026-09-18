@@ -43,7 +43,7 @@ _(Lista inicial — pode crescer conforme novas telas/ações forem definidas. A
 
 **História de usuário**
 
-> Como administrador, quero cadastrar os usuários do sistema associando um cargo e um perfil de permissão, e poder inativá-los quando saem da empresa, sem perder o histórico de pedidos vinculados a eles.
+> Como administrador, quero cadastrar os usuários do sistema associando um perfil de permissão, e poder inativá-los quando saem da empresa, sem perder o histórico de pedidos vinculados a eles.
 
 **Ações:** Cadastrar, editar (inclui inativar), excluir.
 
@@ -199,7 +199,6 @@ Usuário
  ├─ email
  ├─ senha
  ├─ perfil (enum: root | supervisor | almoxarifeChefe | almoxarifeAuxiliar)
- ├─ cargo
  └─ ativo (bool)
 
 TipoItem
