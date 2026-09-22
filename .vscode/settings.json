@@ -1,0 +1,8 @@
+{
+  "auto-rename-tag.activationOnLanguage": ["*"],
+
+  "[prisma]": {
+    "editor.defaultFormatter": "Prisma.prisma-insider",
+    "editor.formatOnSave": true
+  }
+}

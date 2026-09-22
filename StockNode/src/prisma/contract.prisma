@@ -1,12 +1,75 @@
 // use prisma-8
+enum Profile {
+  ROOT
+  SUPERVISOR
+  ALMOXARIFE_CHEFE
+  ALMOXARIFE_AUXILIAR
+}
+
+enum OrderStatus {
+  PENDING
+  IN_FIELD
+  RETURNED
+  CANCELED
+}
 
 model User {
   id        String            @id @default(uuid())
-  nome      String
+  name      String
   email     String            @unique
-  senha     String
-  perfil    String
-  ativo     String
+  password  String
+  profile   Profile
+  active    Boolean           @default(true)
   createdAt TimestamptzString @default(now())
   updatedAt temporal.updatedAtString()
+  orders    Order[]
+}
+
+model TypeItem {
+  id          String            @id @default(uuid())
+  name        String
+  description String
+  active      Boolean           @default(true)
+  createdAt   TimestamptzString @default(now())
+  updatedAt   temporal.updatedAtString()
+  items       Item[]
+}
+
+model Item {
+  id             String            @id @default(uuid())
+  name           String
+  typeItemId     String
+  typeItem       TypeItem          @relation(fields: [typeItemId], references: [id])
+  qntInStock     Int               @default(0)
+  amountBorrowed Int               @default(0)
+  active         Boolean           @default(true)
+  createdAt      TimestamptzString @default(now())
+  updatedAt      temporal.updatedAtString()
+  itemsPerOrder  ItemsPerOrder[]
+}
+
+model Order {
+  id                  String            @id @default(uuid())
+  userId              String
+  user                User              @relation(fields: [userId], references: [id])
+  description         String?
+  status              OrderStatus       @default(PENDING)
+  statusUpdatedAt     TimestamptzString @default(now())
+  actualDepartureDate TimestamptzString?
+  actualReturnDate    TimestamptzString?
+  itemsPerOrder       ItemsPerOrder[]
+  createdAt           TimestamptzString @default(now())
+  updatedAt           temporal.updatedAtString()
+}
+
+model ItemsPerOrder {
+  id                String            @id @default(uuid())
+  orderId           String
+  order             Order             @relation(fields: [orderId], references: [id])
+  itemId            String
+  item              Item              @relation(fields: [itemId], references: [id])
+  quantityWithdrawn Int
+  returnedQuantity  Int?
+  createdAt         TimestamptzString @default(now())
+  updatedAt         temporal.updatedAtString()
 }
