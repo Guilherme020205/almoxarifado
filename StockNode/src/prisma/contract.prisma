@@ -49,16 +49,16 @@ model Item {
 }
 
 model Order {
-  id                  String            @id @default(uuid())
+  id                  String             @id @default(uuid())
   userId              String
-  user                User              @relation(fields: [userId], references: [id])
+  user                User               @relation(fields: [userId], references: [id])
   description         String?
-  status              OrderStatus       @default(PENDING)
-  statusUpdatedAt     TimestamptzString @default(now())
+  status              OrderStatus        @default(PENDING)
+  statusUpdatedAt     TimestamptzString  @default(now())
   actualDepartureDate TimestamptzString?
   actualReturnDate    TimestamptzString?
   itemsPerOrder       ItemsPerOrder[]
-  createdAt           TimestamptzString @default(now())
+  createdAt           TimestamptzString  @default(now())
   updatedAt           temporal.updatedAtString()
 }
 
