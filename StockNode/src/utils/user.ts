@@ -1,5 +1,5 @@
 import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
-import type { Profile } from "../types/profiles";
+import type { Profile } from "../types";
 
 const KEY_LENGTH = 64;
 
