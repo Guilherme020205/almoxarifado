@@ -11,21 +11,25 @@
     "build": "tsc -p tsconfig.build.json",
     "start": "node dist/server.js",
     "contract:emit": "prisma contract emit",
-    "format:prisma": "prisma contract format"
+    "format:prisma": "prisma contract format",
+    "seed": "tsx src/prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/orm-postgres": "^8.0.0-rc.11",
     "cors": "^2.8.6",
-    "dotenv": "^18.0.0",
-    "express": "^5.2.1",
-    "typescript": "^7.0.2"
+    "express": "^5.2.1"
   },
   "devDependencies": {
+    "@prisma/adapter-pg": "^7.10.0",
     "@prisma/cli-engine": "^0.4.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
-    "@types/node": "^26.6.1",
+    "@types/node": "^26.6.2",
+    "@types/pg": "^8.23.1",
+    "dotenv": "^18.0.3",
+    "pg": "^8.23.0",
     "prisma": "^8.0.0-rc.15",
-    "tsx": "^4.23.13"
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3"
   }
 }

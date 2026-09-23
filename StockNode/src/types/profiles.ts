@@ -1,0 +1,2 @@
+export type Profile =
+  "ROOT" | "SUPERVISOR" | "ALMOXARIFE_CHEFE" | "ALMOXARIFE_AUXILIAR";
