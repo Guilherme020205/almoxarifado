@@ -1,7 +1,8 @@
-import express from "express";
+import express, { NextFunction, Request, Response } from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import router from "./routes";
+import { HttpError } from "./utils/httpError";
 
 dotenv.config();
 
@@ -11,6 +12,14 @@ app.use(express.json());
 app.use(cors());
 
 app.use(router);
+
+app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
+  if (err instanceof HttpError) {
+    return res.status(err.statusCode).json({ message: err.message });
+  }
+  console.error(err);
+  res.status(500).json({ message: "Internal server error" });
+});
 
 const port = process.env.PORT || 3000;
 
