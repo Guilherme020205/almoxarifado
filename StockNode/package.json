@@ -12,7 +12,8 @@
     "start": "node dist/server.js",
     "contract:emit": "prisma contract emit",
     "format:prisma": "prisma contract format",
-    "seed": "tsx src/prisma/seed.ts"
+    "seed": "tsx src/prisma/seed.ts",
+    "test": "vitest"
   },
   "dependencies": {
     "@prisma/orm-postgres": "^8.0.0-rc.11",
@@ -32,6 +33,7 @@
     "pg": "^8.23.0",
     "prisma": "^8.0.0-rc.15",
     "tsx": "^4.23.15",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.11"
   }
 }
