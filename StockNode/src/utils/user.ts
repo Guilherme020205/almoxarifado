@@ -1,5 +1,6 @@
 import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import type { Profile } from "../types";
+import { db } from "../prisma/db";
 
 const KEY_LENGTH = 64;
 
@@ -29,4 +30,9 @@ export function isValidEmailForProfile(
 ): boolean {
   if (profile === "ROOT") return email === ROOT_EMAIL;
   return EMAIL_FORMAT.test(email);
+}
+
+export async function isEmailTaken(email: string): Promise<boolean> {
+  const user = await db.orm.public.User.where((u) => u.email.eq(email)).first();
+  return !!user;
 }
