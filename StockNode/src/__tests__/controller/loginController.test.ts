@@ -57,8 +57,8 @@ function mockRes() {
 }
 
 // Usuário "de banco" padrão para os testes; cada teste sobrescreve só o
-// campo que precisa mudar (active/password) via `overrides`.
-function mockUser(overrides: Partial<{ active: boolean; password: string }> = {}) {
+// campo que precisa mudar (active) via `overrides`.
+function mockUser(overrides: Partial<{ active: boolean }> = {}) {
   return {
     id: "user-1",
     email: "email@gmail.com",
@@ -86,7 +86,9 @@ describe("loginController.handle", () => {
     const res = mockRes();
     await expect(
       controller.handle(mockReq({ password: "123" }), res),
-    ).rejects.toMatchObject(new HttpError(400, "Email e senha são obrigatórios"));
+    ).rejects.toMatchObject(
+      new HttpError(400, "Email e senha são obrigatórios"),
+    );
   });
 
   // No controller: `db.orm.public.User.where(fn).first()`. Reproduzimos
@@ -100,7 +102,10 @@ describe("loginController.handle", () => {
 
     const res = mockRes();
     await expect(
-      controller.handle(mockReq({ email: "x@gmail.com", password: "123" }), res),
+      controller.handle(
+        mockReq({ email: "x@gmail.com", password: "123" }),
+        res,
+      ),
     ).rejects.toMatchObject(
       new HttpError(401, "Credenciais inválidas ou usuario inativo"),
     );
@@ -117,7 +122,10 @@ describe("loginController.handle", () => {
 
     const res = mockRes();
     await expect(
-      controller.handle(mockReq({ email: "email@gmail.com", password: "123" }), res),
+      controller.handle(
+        mockReq({ email: "email@gmail.com", password: "123" }),
+        res,
+      ),
     ).rejects.toMatchObject(
       new HttpError(401, "Credenciais inválidas ou usuario inativo"),
     );
@@ -133,7 +141,10 @@ describe("loginController.handle", () => {
 
     const res = mockRes();
     await expect(
-      controller.handle(mockReq({ email: "email@gmail.com", password: "errada" }), res),
+      controller.handle(
+        mockReq({ email: "email@gmail.com", password: "errada" }),
+        res,
+      ),
     ).rejects.toMatchObject(
       new HttpError(401, "Credenciais inválidas ou usuario inativo"),
     );
