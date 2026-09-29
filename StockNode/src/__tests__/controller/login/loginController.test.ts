@@ -1,10 +1,10 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import type { Request, Response } from "express";
 
-import { loginController } from "../../controller/login/loginController";
-import { db } from "../../prisma/db";
-import { verifyPassword } from "../../utils/user";
-import { HttpError } from "../../utils/httpError";
+import { loginController } from "../../../controller/login/loginController";
+import { db } from "../../../prisma/db";
+import { verifyPassword } from "../../../utils/user";
+import { HttpError } from "../../../utils/httpError";
 import jwt from "jsonwebtoken";
 
 /**
@@ -24,13 +24,13 @@ import jwt from "jsonwebtoken";
 // Substitui o client do ORM por um objeto com a mesma forma
 // (db.orm.public.User.where(...).first()), mas cujo "where" é um vi.fn()
 // que cada teste configura para devolver o usuário que quiser.
-vi.mock("../../prisma/db", () => ({
+vi.mock("../../../prisma/db", () => ({
   db: { orm: { public: { User: { where: vi.fn() } } } },
 }));
 
 // verifyPassword normalmente compara hash bcrypt; aqui viramos um mock para
 // controlar diretamente se a "senha" deve ser aceita ou não em cada teste.
-vi.mock("../../utils/user", () => ({
+vi.mock("../../../utils/user", () => ({
   verifyPassword: vi.fn(),
 }));
 
