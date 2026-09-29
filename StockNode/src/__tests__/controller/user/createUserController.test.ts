@@ -32,7 +32,7 @@ function mockRes() {
   return res;
 }
 
-function mockUser(overrides: Partial<{ active: boolean }> = {}) {
+function mockUser(overrides: Partial<{}> = {}) {
   return [
     {
       id: "user-1",
@@ -74,7 +74,19 @@ describe("", () => {
       ),
     );
   });
-  it("não cria o usuario se faltar algum dado", async () => {});
+  it("não cria o usuario se faltar algum dado", async () => {
+    const res = mockRes();
+    await expect(
+      controller.handle(
+        mockReq({
+          email: "guilherme@gmail.com",
+          profile: "SUPERVISOR",
+          password: "123",
+        }),
+        res,
+      ),
+    ).rejects.toMatchObject(new HttpError(400, "Dados faltantes"));
+  });
   it("cria o usuario se o email ainda não cadastrado", async () => {});
   it("não cria o usuario se o email já está cadastrado", async () => {});
   it("não criar o usuario se o profile = 'ROOT'", async () => {
