@@ -2,11 +2,13 @@ import { Router } from "express";
 import { Request, Response } from "express";
 import { loginController } from "./controller/login/loginController";
 import { createUserController } from "./controller/user/createUserController";
+import { getUserController } from "./controller/user/getUsersController";
 
 const router = Router();
 
 router.post("/login", new loginController().handle);
 
+router.get("/user", new getUserController().handle);
 router.post("/userCreate", new createUserController().handle);
 
 router.get("/", (req: Request, res: Response) => {
