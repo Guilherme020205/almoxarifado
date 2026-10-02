@@ -3,6 +3,7 @@ import { it, vi, describe, beforeEach, expect } from "vitest";
 import { db } from "../../../prisma/db";
 import { HttpError } from "../../../utils/httpError";
 import { createUserController } from "../../../controller/user/createUserController";
+import { isEmailTaken } from "../../../utils/user";
 
 vi.mock("../../../prisma/db", () => ({
   db: { orm: { public: { User: { create: vi.fn() } } } },
@@ -30,27 +31,6 @@ function mockRes() {
   res.status = vi.fn().mockReturnValue(res);
   res.json = vi.fn().mockReturnValue(res);
   return res;
-}
-
-function mockUser(overrides: Partial<{}> = {}) {
-  return [
-    {
-      id: "user-1",
-      name: "user 1",
-      email: "email@gmail.com",
-      profile: "ALMOXARIFE_CHEFE",
-      password: "hashed",
-      ...overrides,
-    },
-    {
-      id: "user-2",
-      name: "user 2",
-      email: "email2@gmail.com",
-      profile: "SUPERVISOR",
-      password: "hashed",
-      ...overrides,
-    },
-  ];
 }
 
 describe("", () => {
@@ -87,8 +67,43 @@ describe("", () => {
       ),
     ).rejects.toMatchObject(new HttpError(400, "Dados faltantes"));
   });
-  it("cria o usuario se o email ainda não cadastrado", async () => {});
-  it("não cria o usuario se o email já está cadastrado", async () => {});
+  it("cria o usuario se o email ainda não cadastrado", async () => {
+    vi.mocked(isEmailTaken).mockResolvedValue(false);
+    const res = mockRes();
+
+    await controller.handle(
+      mockReq({
+        name: "guilherme",
+        email: "guilherme@gmail.com",
+        profile: "SUPERVISOR",
+        password: "123",
+      }),
+      res,
+    );
+
+    expect(isEmailTaken).toHaveBeenCalledWith("guilherme@gmail.com");
+    expect(db.orm.public.User.create).toHaveBeenCalledWith(
+      expect.objectContaining({ email: "guilherme@gmail.com" }),
+    );
+    expect(res.status).toHaveBeenCalledWith(200);
+  });
+  it("não cria o usuario se o email já está cadastrado", async () => {
+    vi.mocked(isEmailTaken).mockResolvedValue(true);
+    const res = mockRes();
+
+    await expect(
+      controller.handle(
+        mockReq({
+          name: "guilherme",
+          email: "guilherme@gmail.com",
+          profile: "SUPERVISOR",
+          password: "123",
+        }),
+        res,
+      ),
+    ).rejects.toMatchObject(new HttpError(409, "Email já cadastrado"));
+    expect(db.orm.public.User.create).not.toHaveBeenCalled();
+  });
   it("não criar o usuario se o profile = 'ROOT'", async () => {
     const res = mockRes();
     await expect(
