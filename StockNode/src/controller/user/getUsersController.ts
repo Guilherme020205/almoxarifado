@@ -13,8 +13,6 @@ class getUserController {
       "email",
       "profile",
       "active",
-      "createdAt",
-      "updatedAt",
     );
 
     if (typeof id === "string") {
