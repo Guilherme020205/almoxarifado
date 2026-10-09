@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { Request, Response } from "express";
+import { rateLimit } from "express-rate-limit";
 
 import { isAuthenticated } from "./middleware/isAuthenticated";
 
@@ -10,7 +11,10 @@ import { editUserController } from "./controller/user/editUserController";
 
 const router = Router();
 
-router.post("/login", new loginController().handle);
+// 10 tentativas por IP a cada 15 min
+const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 10 });
+
+router.post("/login", loginLimiter, new loginController().handle);
 
 router.get("/user", isAuthenticated, new getUserController().handle);
 router.post("/user", isAuthenticated, new createUserController().handle);

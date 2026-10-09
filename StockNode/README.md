@@ -6,7 +6,8 @@ Backend do sistema de almoxarifado (gestão de usuários/permissões, itens e em
 
 - Node.js + TypeScript
 - Express
-- cors, dotenv
+- cors, express-rate-limit
+- `.env` carregado via `node --env-file` (dotenv só no `prisma.config.ts`, dev)
 - Prisma ORM 8 (Postgres)
 
 ## Setup

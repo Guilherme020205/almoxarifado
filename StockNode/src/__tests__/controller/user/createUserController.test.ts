@@ -67,6 +67,20 @@ describe("", () => {
       ),
     ).rejects.toMatchObject(new HttpError(400, "Dados faltantes"));
   });
+  it("não cria o usuario se algum campo não for string", async () => {
+    await expect(
+      controller.handle(
+        mockReq({
+          name: "guilherme",
+          email: ["guilherme@gmail.com"],
+          profile: "SUPERVISOR",
+          password: {},
+        } as never),
+        mockRes(),
+      ),
+    ).rejects.toMatchObject(new HttpError(400, "Dados faltantes"));
+    expect(db.orm.public.User.create).not.toHaveBeenCalled();
+  });
   it("cria o usuario se o email ainda não cadastrado", async () => {
     vi.mocked(isEmailTaken).mockResolvedValue(false);
     const res = mockRes();
@@ -101,7 +115,7 @@ describe("", () => {
         }),
         res,
       ),
-    ).rejects.toMatchObject(new HttpError(409, "Email já cadastrado"));
+    ).rejects.toMatchObject(new HttpError(409, "Email ja cadastrado"));
     expect(db.orm.public.User.create).not.toHaveBeenCalled();
   });
   it("não criar o usuario se o profile = 'ROOT'", async () => {

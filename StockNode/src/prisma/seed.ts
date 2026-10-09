@@ -8,13 +8,13 @@ import {
 
 async function main() {
   if (
-    typeof ROOT_EMAIL !== "string" ||
+    !ROOT_EMAIL ||
     !isValidEmailForProfile("ROOT", ROOT_EMAIL)
   ) {
     throw new Error("Email do usuário ROOT inválido");
   }
 
-  if (typeof ROOT_PASSWORD !== "string") {
+  if (!ROOT_PASSWORD) {
     throw new Error("Senha do usuário ROOT inválido");
   }
 

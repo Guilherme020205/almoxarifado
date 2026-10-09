@@ -18,7 +18,8 @@ class createUserController {
 
     const { name, email, password, profile } = req.body;
 
-    if (!name || !email || !password || !profile) {
+    // typeof barra objeto/array/número vindo no body (viraria 500 no hash ou no banco)
+    if ([name, email, password, profile].some((v) => typeof v !== "string" || !v)) {
       throw new HttpError(400, "Dados faltantes");
     }
 

@@ -1,4 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+// ROOT_EMAIL é lido do env na carga do módulo; não depende do .env local
+vi.hoisted(() => {
+  process.env["rootuser"] = "rootStocknode";
+});
+
 import {
   hashPassword,
   verifyPassword,

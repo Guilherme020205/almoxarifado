@@ -1,10 +1,13 @@
 import express, { NextFunction, Request, Response } from "express";
-import dotenv from "dotenv";
 import cors from "cors";
 import router from "./routes";
 import { HttpError } from "./utils/httpError";
 
-dotenv.config();
+for (const name of ["JWT_SECRET", "DATABASE_URL"]) {
+  if (!process.env[name]) {
+    throw new Error(`Variável de ambiente ${name} não definida`);
+  }
+}
 
 const app = express();
 app.use(express.json());
