@@ -14,7 +14,7 @@ router.post("/login", new loginController().handle);
 
 router.get("/user", isAuthenticated, new getUserController().handle);
 router.post("/user", isAuthenticated, new createUserController().handle);
-router.post("/user/:id", isAuthenticated, new editUserController().handle);
+router.patch("/user/:id", isAuthenticated, new editUserController().handle);
 
 router.get("/", (req: Request, res: Response) => {
   return res.json({ status: "Online" });
