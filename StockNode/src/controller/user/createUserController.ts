@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+
 import { db } from "../../prisma/db";
 import { HttpError } from "../../utils/httpError";
 import {
@@ -7,6 +8,7 @@ import {
   isValidEmailForProfile,
 } from "../../utils/user";
 
+import { PROFILES } from "../../types";
 class createUserController {
   async handle(req: Request, res: Response) {
     // res.locals.user vem do middleware isAuthenticated
@@ -20,6 +22,9 @@ class createUserController {
       throw new HttpError(400, "Dados faltantes");
     }
 
+    if (!PROFILES.includes(profile)) {
+      throw new HttpError(400, "Perfil invalido");
+    }
     // impossivel vir outra conta com "ROOT" não tera essa opção no front, mas por garantia...
     if (profile === "ROOT") {
       throw new HttpError(403, "Não é permitido criar usuário ROOT");
@@ -31,7 +36,7 @@ class createUserController {
 
     // check-then-insert tem corrida; o @unique do banco ainda barra, mas vira 500 nesse caso
     if (await isEmailTaken(email)) {
-      throw new HttpError(409, "Email já cadastrado");
+      throw new HttpError(409, "Email ja cadastrado");
     }
 
     const user = await db.orm.public.User.create({

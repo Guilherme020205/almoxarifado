@@ -1,4 +1,5 @@
 import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
+
 import type { Profile } from "../types";
 import { db } from "../prisma/db";
 
@@ -21,7 +22,8 @@ export function verifyPassword(password: string, stored: string): boolean {
 
 // Regra: o usuário ROOT é o único identificado por esse valor fixo (não é um
 // email de verdade). Todo outro perfil precisa de um email real (user@dominio.tld).
-export const ROOT_EMAIL = "rootStocknode";
+export const ROOT_EMAIL = process.env.rootuser;
+export const ROOT_PASSWORD = process.env.rootpass;
 const EMAIL_FORMAT = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function isValidEmailForProfile(
