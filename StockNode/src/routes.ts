@@ -1,5 +1,8 @@
 import { Router } from "express";
 import { Request, Response } from "express";
+
+import { isAuthenticated } from "./middleware/isAuthenticated";
+
 import { loginController } from "./controller/login/loginController";
 import { createUserController } from "./controller/user/createUserController";
 import { getUserController } from "./controller/user/getUsersController";
@@ -9,9 +12,9 @@ const router = Router();
 
 router.post("/login", new loginController().handle);
 
-router.get("/user", new getUserController().handle);
-router.post("/user", new createUserController().handle);
-router.post("/user/:id", new editUserController().handle);
+router.get("/user", isAuthenticated, new getUserController().handle);
+router.post("/user", isAuthenticated, new createUserController().handle);
+router.post("/user/:id", isAuthenticated, new editUserController().handle);
 
 router.get("/", (req: Request, res: Response) => {
   return res.json({ status: "Online" });
