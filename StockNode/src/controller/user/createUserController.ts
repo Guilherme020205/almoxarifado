@@ -9,6 +9,11 @@ import {
 
 class createUserController {
   async handle(req: Request, res: Response) {
+    // res.locals.user vem do middleware isAuthenticated
+    if (!["ROOT", "SUPERVISOR"].includes(res.locals.user?.profile)) {
+      throw new HttpError(403, "Sem permissão para criar usuários");
+    }
+
     const { name, email, password, profile } = req.body;
 
     if (!name || !email || !password || !profile) {

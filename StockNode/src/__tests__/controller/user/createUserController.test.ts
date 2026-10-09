@@ -26,8 +26,8 @@ function mockReq(
   return { body } as Request;
 }
 
-function mockRes() {
-  const res = {} as Response;
+function mockRes(profile = "ROOT") {
+  const res = { locals: { user: { sub: "1", profile } } } as unknown as Response;
   res.status = vi.fn().mockReturnValue(res);
   res.json = vi.fn().mockReturnValue(res);
   return res;
@@ -119,5 +119,35 @@ describe("", () => {
     ).rejects.toMatchObject(
       new HttpError(403, "Não é permitido criar usuário ROOT"),
     );
+  });
+  it("não cria o usuario se quem pede não é ROOT nem SUPERVISOR", async () => {
+    await expect(
+      controller.handle(
+        mockReq({
+          name: "gui",
+          email: "guilherme@gmail.com",
+          profile: "SUPERVISOR",
+          password: "123",
+        }),
+        mockRes("ALMOXARIFE_CHEFE"),
+      ),
+    ).rejects.toMatchObject(
+      new HttpError(403, "Sem permissão para criar usuários"),
+    );
+    expect(db.orm.public.User.create).not.toHaveBeenCalled();
+  });
+  it("SUPERVISOR pode criar usuario", async () => {
+    vi.mocked(isEmailTaken).mockResolvedValue(false);
+    const res = mockRes("SUPERVISOR");
+    await controller.handle(
+      mockReq({
+        name: "gui",
+        email: "guilherme@gmail.com",
+        profile: "SUPERVISOR",
+        password: "123",
+      }),
+      res,
+    );
+    expect(res.status).toHaveBeenCalledWith(200);
   });
 });
