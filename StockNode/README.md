@@ -32,6 +32,9 @@ npm run dev
 | -------------- | -------------------------------- | ------ |
 | `PORT`         | Porta do servidor HTTP           | `3000` |
 | `DATABASE_URL` | String de conexão do PostgreSQL  | —      |
+| `JWT_SECRET`   | Segredo usado para assinar os tokens | —      |
+| `rootuser` / `rootpass` | Login e senha do ROOT criado pelo `npm run seed` | — |
+| `CORS_ORIGIN`  | Origens permitidas, separadas por vírgula | todas |
 
 ## Estrutura atual
 

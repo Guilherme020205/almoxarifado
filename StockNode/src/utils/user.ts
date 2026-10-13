@@ -13,6 +13,8 @@ export function hashPassword(password: string): string {
 
 export function verifyPassword(password: string, stored: string): boolean {
   const [salt, hash] = stored.split(":");
+  // hash malformado no banco = senha inválida, não 500
+  if (!salt || !hash) return false;
   const candidate = scryptSync(password, salt, KEY_LENGTH);
   const expected = Buffer.from(hash, "hex");
   return (
@@ -20,9 +22,12 @@ export function verifyPassword(password: string, stored: string): boolean {
   );
 }
 
-// Regra: o usuário ROOT é o único identificado por esse valor fixo (não é um
-// email de verdade). Todo outro perfil precisa de um email real (user@dominio.tld).
-export const ROOT_EMAIL = process.env.rootuser;
+// email é salvo e comparado sempre em minúsculas: "Joao@x.com" e "joao@x.com" são a mesma conta
+export const normalizeEmail = (email: string) => email.trim().toLowerCase();
+
+// Regra: o usuário ROOT é o único identificado pelo valor de `rootuser` no .env
+// (não é um email de verdade). Todo outro perfil precisa de um email real (user@dominio.tld).
+export const ROOT_EMAIL = process.env.rootuser && normalizeEmail(process.env.rootuser);
 export const ROOT_PASSWORD = process.env.rootpass;
 const EMAIL_FORMAT = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -30,7 +35,7 @@ export function isValidEmailForProfile(
   profile: Profile,
   email: string,
 ): boolean {
-  if (profile === "ROOT") return email === ROOT_EMAIL;
+  if (profile === "ROOT") return !!ROOT_EMAIL && normalizeEmail(email) === ROOT_EMAIL;
   return EMAIL_FORMAT.test(email);
 }
 

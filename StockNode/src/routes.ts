@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import { rateLimit } from "express-rate-limit";
 
 import { isAuthenticated } from "./middleware/isAuthenticated";
+import { requireProfile } from "./middleware/requireProfile";
 
 import { loginController } from "./controller/login/loginController";
 import { createUserController } from "./controller/user/createUserController";
@@ -16,9 +17,11 @@ const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 10 });
 
 router.post("/login", loginLimiter, new loginController().handle);
 
-router.get("/user", isAuthenticated, new getUserController().handle);
-router.post("/user", isAuthenticated, new createUserController().handle);
-router.patch("/user/:id", isAuthenticated, new editUserController().handle);
+const canManageUsers = [isAuthenticated, requireProfile("ROOT", "SUPERVISOR")];
+
+router.get("/user", canManageUsers, new getUserController().handle);
+router.post("/user", canManageUsers, new createUserController().handle);
+router.patch("/user/:id", canManageUsers, new editUserController().handle);
 
 router.get("/", (req: Request, res: Response) => {
   return res.json({ status: "Online" });

@@ -21,6 +21,14 @@ describe("login: verifyPassword", () => {
     const stored = hashPassword("minhaSenha123");
     expect(verifyPassword("senhaErrada", stored)).toBe(false);
   });
+
+  it("rejeita hash malformado sem lançar erro", () => {
+    expect(verifyPassword("x", "semdoispontos")).toBe(false);
+  });
+
+  it("aceita o email do Root com maiúsculas diferentes", () => {
+    expect(isValidEmailForProfile("ROOT", "ROOTSTOCKNODE")).toBe(true);
+  });
 });
 
 describe("login: isValidEmailForProfile", () => {

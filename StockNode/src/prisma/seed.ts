@@ -1,21 +1,16 @@
 import { db } from "./db";
-import {
-  hashPassword,
-  isValidEmailForProfile,
-  ROOT_EMAIL,
-  ROOT_PASSWORD,
-} from "../utils/user";
+import { hashPassword, ROOT_EMAIL, ROOT_PASSWORD } from "../utils/user";
 
 async function main() {
-  if (
-    !ROOT_EMAIL ||
-    !isValidEmailForProfile("ROOT", ROOT_EMAIL)
-  ) {
-    throw new Error("Email do usuário ROOT inválido");
+  if (!ROOT_EMAIL || !ROOT_PASSWORD) {
+    throw new Error("Defina rootuser e rootpass no .env");
   }
 
-  if (!ROOT_PASSWORD) {
-    throw new Error("Senha do usuário ROOT inválido");
+  // pode rodar de novo sem quebrar no @unique do email
+  const existing = await db.orm.public.User.where({ email: ROOT_EMAIL }).first();
+  if (existing) {
+    console.log("ROOT já existe, nada a fazer.", existing.id);
+    return;
   }
 
   const root = await db.orm.public.User.create({

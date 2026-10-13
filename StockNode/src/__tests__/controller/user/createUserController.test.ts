@@ -26,14 +26,14 @@ function mockReq(
   return { body } as Request;
 }
 
-function mockRes(profile = "ROOT") {
-  const res = { locals: { user: { sub: "1", profile } } } as unknown as Response;
+function mockRes() {
+  const res = {} as Response;
   res.status = vi.fn().mockReturnValue(res);
   res.json = vi.fn().mockReturnValue(res);
   return res;
 }
 
-describe("", () => {
+describe("createUserController", () => {
   const controller = new createUserController();
 
   beforeEach(() => {
@@ -41,18 +41,19 @@ describe("", () => {
   });
 
   it("cria o usuario se todos os dados passados", async () => {
+    vi.mocked(isEmailTaken).mockResolvedValue(false);
     const res = mockRes();
-    await expect(
-      controller.handle(
-        mockReq({
-          name: "guilherme",
-          email: "guilherme@gmail.com",
-          profile: "SUPERVISOR",
-          password: "123",
-        }),
-        res,
-      ),
+    await controller.handle(
+      mockReq({
+        name: "guilherme",
+        email: "guilherme@gmail.com",
+        profile: "SUPERVISOR",
+        password: "123",
+      }),
+      res,
     );
+    expect(db.orm.public.User.create).toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(201);
   });
   it("não cria o usuario se faltar algum dado", async () => {
     const res = mockRes();
@@ -99,7 +100,7 @@ describe("", () => {
     expect(db.orm.public.User.create).toHaveBeenCalledWith(
       expect.objectContaining({ email: "guilherme@gmail.com" }),
     );
-    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.status).toHaveBeenCalledWith(201);
   });
   it("não cria o usuario se o email já está cadastrado", async () => {
     vi.mocked(isEmailTaken).mockResolvedValue(true);
@@ -134,34 +135,20 @@ describe("", () => {
       new HttpError(403, "Não é permitido criar usuário ROOT"),
     );
   });
-  it("não cria o usuario se quem pede não é ROOT nem SUPERVISOR", async () => {
-    await expect(
-      controller.handle(
-        mockReq({
-          name: "gui",
-          email: "guilherme@gmail.com",
-          profile: "SUPERVISOR",
-          password: "123",
-        }),
-        mockRes("ALMOXARIFE_CHEFE"),
-      ),
-    ).rejects.toMatchObject(
-      new HttpError(403, "Sem permissão para criar usuários"),
-    );
-    expect(db.orm.public.User.create).not.toHaveBeenCalled();
-  });
-  it("SUPERVISOR pode criar usuario", async () => {
+  it("salva o email em minúsculas", async () => {
     vi.mocked(isEmailTaken).mockResolvedValue(false);
-    const res = mockRes("SUPERVISOR");
     await controller.handle(
       mockReq({
         name: "gui",
-        email: "guilherme@gmail.com",
+        email: " Guilherme@Gmail.com ",
         profile: "SUPERVISOR",
         password: "123",
       }),
-      res,
+      mockRes(),
     );
-    expect(res.status).toHaveBeenCalledWith(200);
+    expect(isEmailTaken).toHaveBeenCalledWith("guilherme@gmail.com");
+    expect(db.orm.public.User.create).toHaveBeenCalledWith(
+      expect.objectContaining({ email: "guilherme@gmail.com" }),
+    );
   });
 });

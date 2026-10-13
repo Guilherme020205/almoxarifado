@@ -6,22 +6,22 @@ import {
   hashPassword,
   isEmailTaken,
   isValidEmailForProfile,
+  normalizeEmail,
 } from "../../utils/user";
 
 import { PROFILES } from "../../types";
+
+// permissão (ROOT/SUPERVISOR) é checada pelo requireProfile na rota
 class createUserController {
   async handle(req: Request, res: Response) {
-    // res.locals.user vem do middleware isAuthenticated
-    if (!["ROOT", "SUPERVISOR"].includes(res.locals.user?.profile)) {
-      throw new HttpError(403, "Sem permissão para criar usuários");
-    }
-
-    const { name, email, password, profile } = req.body;
+    const { name, password, profile } = req.body;
 
     // typeof barra objeto/array/número vindo no body (viraria 500 no hash ou no banco)
-    if ([name, email, password, profile].some((v) => typeof v !== "string" || !v)) {
+    if ([name, req.body.email, password, profile].some((v) => typeof v !== "string" || !v)) {
       throw new HttpError(400, "Dados faltantes");
     }
+
+    const email = normalizeEmail(req.body.email);
 
     if (!PROFILES.includes(profile)) {
       throw new HttpError(400, "Perfil invalido");
@@ -35,19 +35,20 @@ class createUserController {
       throw new HttpError(400, "Email invalido");
     }
 
-    // check-then-insert tem corrida; o @unique do banco ainda barra, mas vira 500 nesse caso
+    // check-then-insert tem corrida; se duas requisições passarem juntas,
+    // o @unique do banco barra e o handler do server.ts devolve 409
     if (await isEmailTaken(email)) {
       throw new HttpError(409, "Email ja cadastrado");
     }
 
-    const user = await db.orm.public.User.create({
+    await db.orm.public.User.create({
       name: name,
       email: email,
       password: hashPassword(password),
       profile: profile,
     });
 
-    res.status(200).json("Usuario criado");
+    res.status(201).json("Usuario criado");
   }
 }
 
