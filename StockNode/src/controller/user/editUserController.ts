@@ -10,7 +10,7 @@ import {
 } from "../../utils/user";
 import { PROFILES, type Profile } from "../../types";
 
-// permissão (ROOT/SUPERVISOR) é checada pelo requireProfile na rota
+// rota só exige login; quem pode editar quem é decidido aqui (depende do alvo)
 class editUserController {
   async handle(req: Request, res: Response) {
     const { id } = req.params;
@@ -49,8 +49,20 @@ class editUserController {
       throw new HttpError(404, "Usuário não encontrado");
     }
 
+    const isSelf = target.id === requester.sub;
+
+    // qualquer perfil edita a própria conta; editar outra pessoa só ROOT/SUPERVISOR
+    if (!isSelf && !["ROOT", "SUPERVISOR"].includes(requester.profile)) {
+      throw new HttpError(403, "Sem permissão para editar outro usuário");
+    }
+
     if (target.profile === "ROOT" && requester.profile !== "ROOT") {
       throw new HttpError(403, "Apenas o ROOT pode editar o ROOT");
+    }
+
+    // sem isso um AUXILIAR se promoveria a SUPERVISOR editando a si mesmo
+    if (isSelf && profile !== undefined && profile !== target.profile) {
+      throw new HttpError(403, "Não é permitido alterar o próprio perfil");
     }
 
     // ninguém vira ROOT e o ROOT não deixa de ser ROOT
@@ -58,7 +70,7 @@ class editUserController {
       throw new HttpError(403, "Não é permitido alterar o perfil ROOT");
     }
 
-    if (active === false && (target.id === requester.sub || target.profile === "ROOT")) {
+    if (active === false && (isSelf || target.profile === "ROOT")) {
       throw new HttpError(403, "Não é permitido desativar o próprio usuário ou o ROOT");
     }
 

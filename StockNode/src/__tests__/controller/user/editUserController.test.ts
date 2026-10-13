@@ -62,7 +62,7 @@ describe("editUserController", () => {
   });
 
   it("faz hash da senha", async () => {
-    await call({ password: "nova", passwordConfirm: "nova" }).promise;
+    await call({ password: "nova", passwordConfirm: "nova" }, { requester: "ROOT" }).promise;
     const { password } = update.mock.calls[0][0];
     expect(verifyPassword("nova", password)).toBe(true);
   });
@@ -104,5 +104,53 @@ describe("editUserController", () => {
 
   it("valida o email com o perfil final", async () => {
     await expect(call({ email: "semarroba" }).promise).rejects.toThrow("Email invalido");
+  });
+
+  it("AUXILIAR edita a própria conta", async () => {
+    first.mockResolvedValue(alvo({ id: "1", profile: "ALMOXARIFE_AUXILIAR" }));
+    await call({ name: "Eu" }, { id: "1", sub: "1", requester: "ALMOXARIFE_AUXILIAR" }).promise;
+    expect(update).toHaveBeenCalledWith({ name: "Eu" });
+  });
+
+  it("AUXILIAR não edita outro usuário", async () => {
+    await expect(
+      call({ name: "x" }, { requester: "ALMOXARIFE_AUXILIAR" }).promise,
+    ).rejects.toThrow("Sem permissão para editar outro usuário");
+  });
+
+  it("ninguém altera o próprio perfil", async () => {
+    first.mockResolvedValue(alvo({ id: "1", profile: "ALMOXARIFE_AUXILIAR" }));
+    await expect(
+      call({ profile: "SUPERVISOR" }, { id: "1", sub: "1", requester: "ALMOXARIFE_AUXILIAR" }).promise,
+    ).rejects.toThrow("Não é permitido alterar o próprio perfil");
+    expect(update).not.toHaveBeenCalled();
+  });
+
+  it("SUPERVISOR troca a senha de outro usuário", async () => {
+    await call({ password: "nova", passwordConfirm: "nova" }).promise;
+    expect(update).toHaveBeenCalled();
+  });
+
+  it("SUPERVISOR troca a própria senha", async () => {
+    first.mockResolvedValue(alvo({ id: "1", profile: "SUPERVISOR" }));
+    await call({ password: "nova", passwordConfirm: "nova" }, { id: "1", sub: "1" }).promise;
+    expect(update).toHaveBeenCalled();
+  });
+
+  it("SUPERVISOR altera o perfil de outro usuário", async () => {
+    await call({ profile: "ALMOXARIFE_AUXILIAR" }).promise;
+    expect(update).toHaveBeenCalledWith({ profile: "ALMOXARIFE_AUXILIAR" });
+  });
+
+  it("SUPERVISOR promove outro usuário a SUPERVISOR", async () => {
+    await call({ profile: "SUPERVISOR" }).promise;
+    expect(update).toHaveBeenCalledWith({ profile: "SUPERVISOR" });
+  });
+
+  it("ROOT não altera o próprio perfil", async () => {
+    first.mockResolvedValue(alvo({ id: "1", profile: "ROOT", email: "rootstocknode" }));
+    await expect(
+      call({ profile: "SUPERVISOR" }, { id: "1", sub: "1", requester: "ROOT" }).promise,
+    ).rejects.toMatchObject({ statusCode: 403 });
   });
 });

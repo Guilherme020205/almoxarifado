@@ -34,7 +34,11 @@ _(Lista inicial — pode crescer conforme novas telas/ações forem definidas. A
 
 | Ação                                           | Root | Supervisor | Almoxarife Chefe | Almoxarife Auxiliar |
 | ---------------------------------------------- | :--: | :--------: | :--------------: | :-----------------: |
-| `usuario.*`                                    |  ✅  |     ✅     |        ✅        |         ❌          |
+| `usuario.criar`                                |  ✅  |     ✅     |        ❌        |         ❌          |
+| `usuario.editar` — outros usuários             |  ✅  | ✅ (exceto o Root) |        ❌        |         ❌          |
+| `usuario.editar` — o próprio usuário           |  ✅  |     ✅     |        ✅        |         ✅          |
+| `usuario.inativar`                             |  ✅  |     ✅     |        ❌        |         ❌          |
+| `usuario.deletar`                              |  ✅  |     ✅     |        ❌        |         ❌          |
 | `tipoItem.*`                                   |  ✅  |     ✅     |        ✅        |         ❌          |
 | `item.criar` / `item.editar` / `item.inativar` |  ✅  |     ✅     |        ✅        |         ✅          |
 | `pedido.criar` / `pedido.editar`               |  ✅  |     ✅     |        ✅        |         ✅          |
@@ -57,9 +61,19 @@ _(Lista inicial — pode crescer conforme novas telas/ações forem definidas. A
 
 **Regras de negócio:**
 
-- RN02: Usuário criado só pode ser deletado caso não tenha registros por ele
+- RN02: Usuário criado só pode ser deletado caso não tenha registros por ele. Somente Root e Supervisor podem deletar usuários.
 - RN03: Usuário inativo não deve conseguir logar no sistema.
 - RN04: Usuário inativo continua aparecendo normalmente no histórico dos pedidos já feitos por ele (não é removido nem ocultado dos registros antigos).
+- RN23: Somente Root e Supervisor cadastram usuários. Nenhum usuário pode ser cadastrado com o perfil Root.
+- RN24: Edição de outros usuários (campos: nome, email, senha, perfil, ativo):
+  - **Root** edita qualquer usuário e todos os campos.
+  - **Supervisor** edita qualquer usuário, exceto o Root, e todos os campos — inclusive redefinir a senha (ex.: senha esquecida) e promover/rebaixar outros usuários a Supervisor.
+  - **Almoxarife Chefe** e **Almoxarife Auxiliar** não editam outros usuários.
+- RN25: Todo usuário pode editar o próprio nome, email e senha. Ninguém pode alterar o próprio perfil nem se inativar (nem o Root).
+- RN26: Só Root e Supervisor alteram perfil (de outros usuários). Ninguém pode receber o perfil Root (validado no backend, mesmo sem a opção no front).
+- RN27: O Root é único (criado pelo seed, com login e senha definidos no `.env`), não pode ser inativado e não tem o perfil alterado.
+- RN28: Ao alterar a senha, a nova senha deve ser digitada duas vezes (campo de confirmação).
+- RN29: O email é único e não diferencia maiúsculas de minúsculas (`Joao@x.com` e `joao@x.com` são o mesmo login).
 
 ---
 

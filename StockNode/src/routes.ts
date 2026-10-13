@@ -21,7 +21,7 @@ const canManageUsers = [isAuthenticated, requireProfile("ROOT", "SUPERVISOR")];
 
 router.get("/user", canManageUsers, new getUserController().handle);
 router.post("/user", canManageUsers, new createUserController().handle);
-router.patch("/user/:id", canManageUsers, new editUserController().handle);
+router.patch("/user/:id", isAuthenticated, new editUserController().handle);
 
 router.get("/", (req: Request, res: Response) => {
   return res.json({ status: "Online" });
