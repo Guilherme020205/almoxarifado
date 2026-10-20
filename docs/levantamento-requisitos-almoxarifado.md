@@ -25,23 +25,24 @@ Os perfis de acesso são **fixos** (enum no sistema, não uma entidade cadastrá
 | ------------------- | ---------------------------------------------------------------------------- |
 | Usuários            | `usuario.criar`, `usuario.editar`, `usuario.inativar`, `usuario.deletar`     |
 | Tipo de Item        | `tipoItem.criar`, `tipoItem.editar`, `tipoItem.inativar`, `tipoItem.deletar` |
-| Item                | `item.criar`, `item.editar`, `item.inativar`                                 |
+| Item                | `item.criar`, `item.editar`, `item.inativar`, `item.deletar`                 |
 | Pedido (empréstimo) | `pedido.criar`, `pedido.editar`                                              |
 
 _(Lista inicial — pode crescer conforme novas telas/ações forem definidas. Alterações nessa matriz são feitas em código, não pelo usuário do sistema.)_
 
 **Matriz de permissões dos perfis:**
 
-| Ação                                           | Root | Supervisor | Almoxarife Chefe | Almoxarife Auxiliar |
-| ---------------------------------------------- | :--: | :--------: | :--------------: | :-----------------: |
-| `usuario.criar`                                |  ✅  |     ✅     |        ❌        |         ❌          |
+| Ação                                           | Root |     Supervisor     | Almoxarife Chefe | Almoxarife Auxiliar |
+| ---------------------------------------------- | :--: | :----------------: | :--------------: | :-----------------: |
+| `usuario.criar`                                |  ✅  |         ✅         |        ❌        |         ❌          |
 | `usuario.editar` — outros usuários             |  ✅  | ✅ (exceto o Root) |        ❌        |         ❌          |
-| `usuario.editar` — o próprio usuário           |  ✅  |     ✅     |        ✅        |         ✅          |
-| `usuario.inativar`                             |  ✅  |     ✅     |        ❌        |         ❌          |
-| `usuario.deletar`                              |  ✅  |     ✅     |        ❌        |         ❌          |
-| `tipoItem.*`                                   |  ✅  |     ✅     |        ✅        |         ❌          |
-| `item.criar` / `item.editar` / `item.inativar` |  ✅  |     ✅     |        ✅        |         ✅          |
-| `pedido.criar` / `pedido.editar`               |  ✅  |     ✅     |        ✅        |         ✅          |
+| `usuario.editar` — o próprio usuário           |  ✅  |         ✅         |        ✅        |         ✅          |
+| `usuario.inativar`                             |  ✅  |         ✅         |        ❌        |         ❌          |
+| `usuario.deletar`                              |  ✅  |         ✅         |        ❌        |         ❌          |
+| `tipoItem.*`                                   |  ✅  |         ✅         |        ✅        |         ❌          |
+| `item.criar` / `item.editar` / `item.inativar` |  ✅  |         ✅         |        ✅        |         ✅          |
+| `item.deletar`                                 |  ✅  |         ✅         |        ✅        |         ❌          |
+| `pedido.criar` / `pedido.editar`               |  ✅  |         ✅         |        ✅        |         ✅          |
 
 ### 2.2 Usuários
 
@@ -61,7 +62,7 @@ _(Lista inicial — pode crescer conforme novas telas/ações forem definidas. A
 
 **Regras de negócio:**
 
-- RN02: Usuário criado só pode ser deletado caso não tenha registros por ele. Somente Root e Supervisor podem deletar usuários.
+- RN02: Usuário criado só pode ser deletado caso não tenha nenhum pedido vinculado a ele (em qualquer status, inclusive Cancelado). Somente Root e Supervisor podem deletar usuários. Com histórico, a saída é inativar (RN30).
 - RN03: Usuário inativo não deve conseguir logar no sistema.
 - RN04: Usuário inativo continua aparecendo normalmente no histórico dos pedidos já feitos por ele (não é removido nem ocultado dos registros antigos).
 - RN23: Somente Root e Supervisor cadastram usuários. Nenhum usuário pode ser cadastrado com o perfil Root.
@@ -74,6 +75,7 @@ _(Lista inicial — pode crescer conforme novas telas/ações forem definidas. A
 - RN27: O Root é único (criado pelo seed, com login e senha definidos no `.env`), não pode ser inativado e não tem o perfil alterado.
 - RN28: Ao alterar a senha, a nova senha deve ser digitada duas vezes (campo de confirmação).
 - RN29: O email é único e não diferencia maiúsculas de minúsculas (`Joao@x.com` e `joao@x.com` são o mesmo login).
+- RN30: Regra geral de exclusão (usuário, tipo de item, item): só se exclui o que **não tem histórico** vinculado (RN02, RN06, RN09). Se tiver, a exclusão é recusada (HTTP 409) com mensagem orientando a inativar. A trava também é garantida no banco pelas chaves estrangeiras (sem `onDelete: Cascade`), então nunca se perde histórico mesmo se a checagem da aplicação falhar.
 
 ---
 
@@ -95,7 +97,7 @@ _(Lista inicial — pode crescer conforme novas telas/ações forem definidas. A
 **Regras de negócio:**
 
 - RN05: Ao inativar um tipo, os itens vinculados a ele deixam de aparecer nas listagens.
-- RN06: Só é possível excluir um tipo se não houver nenhum item vinculado a ele.
+- RN06: Só é possível excluir um tipo se não houver nenhum item vinculado a ele (ativo ou inativo). Com itens vinculados, a saída é inativar (RN30).
 
 ### 3.2 Item
 
@@ -103,7 +105,7 @@ _(Lista inicial — pode crescer conforme novas telas/ações forem definidas. A
 
 > Como almoxarife, quero cadastrar os itens do estoque com nome, tipo e quantidades, para saber o que está disponível e o que está emprestado a qualquer momento.
 
-**Ações:** Cadastrar, editar, inativar (sem opção de excluir).
+**Ações:** Cadastrar, editar, inativar, excluir.
 
 **Campos:**
 | Campo | Tipo | Observação |
@@ -117,7 +119,7 @@ _(Lista inicial — pode crescer conforme novas telas/ações forem definidas. A
 
 - RN07: Item inativo não aparece na lista de itens disponível dentro do modal de novo pedido.
 - RN08: Item inativo continua aparecendo na listagem geral de itens (a lista de itens mostra inativos).
-- RN09: Item **nunca pode ser excluído**, apenas inativado — mesmo com unidades emprestadas em pedidos ativos. Um item inativo continua podendo ser devolvido normalmente (aparece nos pedidos já existentes), só não pode ser escolhido em pedidos novos. A quantidade emprestada continua sendo controlada normalmente até zerar.
+- RN09: Item só pode ser excluído se nunca foi usado em nenhum pedido (em qualquer status, inclusive Cancelado) — a exclusão serve para corrigir cadastros feitos por engano. Item com histórico de pedidos só pode ser inativado — mesmo com unidades emprestadas em pedidos ativos. Um item inativo continua podendo ser devolvido normalmente (aparece nos pedidos já existentes), só não pode ser escolhido em pedidos novos. A quantidade emprestada continua sendo controlada normalmente até zerar.
 
 ---
 
