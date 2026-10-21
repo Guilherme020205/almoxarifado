@@ -6,10 +6,15 @@ async function main() {
     throw new Error("Defina rootuser e rootpass no .env");
   }
 
-  // pode rodar de novo sem quebrar no @unique do email
-  const existing = await db.orm.public.User.where({ email: ROOT_EMAIL }).first();
+  // o ROOT só é gerenciado por aqui: rodar de novo aplica o login/senha atuais do .env
+  const existing = await db.orm.public.User.where({ profile: "ROOT" }).first();
   if (existing) {
-    console.log("ROOT já existe, nada a fazer.", existing.id);
+    await db.orm.public.User.where({ id: existing.id }).update({
+      email: ROOT_EMAIL,
+      password: hashPassword(ROOT_PASSWORD),
+      active: true,
+    });
+    console.log("ROOT atualizado com o .env.", existing.id);
     return;
   }
 

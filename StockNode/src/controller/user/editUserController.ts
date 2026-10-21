@@ -56,8 +56,9 @@ class editUserController {
       throw new HttpError(403, "Sem permissão para editar outro usuário");
     }
 
-    if (target.profile === "ROOT" && requester.profile !== "ROOT") {
-      throw new HttpError(403, "Apenas o ROOT pode editar o ROOT");
+    // o ROOT é da equipe de suporte: só muda pelo .env + seed, nunca pela API (nem por ele mesmo)
+    if (target.profile === "ROOT") {
+      throw new HttpError(403, "O usuário ROOT não pode ser editado pelo sistema");
     }
 
     // sem isso um AUXILIAR se promoveria a SUPERVISOR editando a si mesmo
@@ -65,13 +66,12 @@ class editUserController {
       throw new HttpError(403, "Não é permitido alterar o próprio perfil");
     }
 
-    // ninguém vira ROOT e o ROOT não deixa de ser ROOT
-    if (profile !== undefined && (profile === "ROOT") !== (target.profile === "ROOT")) {
-      throw new HttpError(403, "Não é permitido alterar o perfil ROOT");
+    if (profile === "ROOT") {
+      throw new HttpError(403, "Não é permitido promover usuário a ROOT");
     }
 
-    if (active === false && (isSelf || target.profile === "ROOT")) {
-      throw new HttpError(403, "Não é permitido desativar o próprio usuário ou o ROOT");
+    if (active === false && isSelf) {
+      throw new HttpError(403, "Não é permitido desativar o próprio usuário");
     }
 
     const finalProfile: Profile = profile ?? target.profile;

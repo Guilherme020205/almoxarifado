@@ -21,7 +21,7 @@ router.post("/login", loginLimiter, new loginController().handle);
 
 const canManageUsers = [isAuthenticated, requireProfile("ROOT", "SUPERVISOR")];
 
-router.get("/user", canManageUsers, new getUserController().handle);
+router.get("/user", isAuthenticated, new getUserController().handle);
 router.post("/user", canManageUsers, new createUserController().handle);
 router.patch("/user/:id", isAuthenticated, new editUserController().handle);
 

@@ -36,7 +36,7 @@ _(Lista inicial — pode crescer conforme novas telas/ações forem definidas. A
 | ---------------------------------------------- | :--: | :----------------: | :--------------: | :-----------------: |
 | `usuario.criar`                                |  ✅  |         ✅         |        ❌        |         ❌          |
 | `usuario.editar` — outros usuários             |  ✅  | ✅ (exceto o Root) |        ❌        |         ❌          |
-| `usuario.editar` — o próprio usuário           |  ✅  |         ✅         |        ✅        |         ✅          |
+| `usuario.editar` — o próprio usuário           |  ❌  |         ✅         |        ✅        |         ✅          |
 | `usuario.inativar`                             |  ✅  |         ✅         |        ❌        |         ❌          |
 | `usuario.deletar`                              |  ✅  |         ✅         |        ❌        |         ❌          |
 | `tipoItem.*`                                   |  ✅  |         ✅         |        ✅        |         ❌          |
@@ -70,12 +70,13 @@ _(Lista inicial — pode crescer conforme novas telas/ações forem definidas. A
   - **Root** edita qualquer usuário e todos os campos.
   - **Supervisor** edita qualquer usuário, exceto o Root, e todos os campos — inclusive redefinir a senha (ex.: senha esquecida) e promover/rebaixar outros usuários a Supervisor.
   - **Almoxarife Chefe** e **Almoxarife Auxiliar** não editam outros usuários.
-- RN25: Todo usuário pode editar o próprio nome, email e senha. Ninguém pode alterar o próprio perfil nem se inativar (nem o Root).
+- RN25: Todo usuário (exceto o Root, ver RN27) pode editar o próprio nome, email e senha. Ninguém pode alterar o próprio perfil nem se inativar.
 - RN26: Só Root e Supervisor alteram perfil (de outros usuários). Ninguém pode receber o perfil Root (validado no backend, mesmo sem a opção no front).
-- RN27: O Root é único (criado pelo seed, com login e senha definidos no `.env`), não pode ser inativado e não tem o perfil alterado.
+- RN27: O Root é único e de uso exclusivo da equipe de suporte/desenvolvimento (não é entregue ao cliente). É criado pelo seed com login e senha definidos no `.env` e **não pode ser editado pelo sistema por ninguém, nem por ele mesmo** (nome, email, senha, perfil, ativo) — o front não exibe a opção de edição para ele. Para trocar login/senha do Root, o suporte altera o `.env` e roda o seed de novo, que sobrescreve email e senha e o reativa.
 - RN28: Ao alterar a senha, a nova senha deve ser digitada duas vezes (campo de confirmação).
 - RN29: O email é único e não diferencia maiúsculas de minúsculas (`Joao@x.com` e `joao@x.com` são o mesmo login).
 - RN30: Regra geral de exclusão (usuário, tipo de item, item): só se exclui o que **não tem histórico** vinculado (RN02, RN06, RN09). Se tiver, a exclusão é recusada (HTTP 409) com mensagem orientando a inativar. A trava também é garantida no banco pelas chaves estrangeiras (sem `onDelete: Cascade`), então nunca se perde histórico mesmo se a checagem da aplicação falhar.
+- RN31: Todo usuário logado (qualquer perfil) pode listar/consultar usuários — usado na tela "Usuário (perfil próprio)" e na escolha de quem recebe o pedido. A listagem nunca retorna a senha e nunca inclui o Root (RN27).
 
 ---
 

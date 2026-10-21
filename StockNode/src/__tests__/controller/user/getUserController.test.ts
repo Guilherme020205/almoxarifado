@@ -65,8 +65,8 @@ function mockUser() {
 }
 
 // executa o callback do where de índice `call` num usuário falso
-// e devolve o mock do operador (eq/ilike) para conferir o argumento
-function whereOp(call: number, field: string, op: "eq" | "ilike") {
+// e devolve o mock do operador (eq/ilike/neq) para conferir o argumento
+function whereOp(call: number, field: string, op: "eq" | "ilike" | "neq") {
   const fn = vi.fn();
   query.where.mock.calls[call][0]({ [field]: { [op]: fn } });
   return fn;
@@ -87,7 +87,8 @@ describe("getUserController.handle", () => {
 
     await controller.handle(mockReq({}), res);
 
-    expect(query.where).not.toHaveBeenCalled();
+    expect(query.where).toHaveBeenCalledTimes(1);
+    expect(whereOp(0, "profile", "neq")).toHaveBeenCalledWith("ROOT");
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(users);
   });
@@ -99,7 +100,7 @@ describe("getUserController.handle", () => {
 
     await controller.handle(mockReq({ id: "user-1" }), res);
 
-    expect(query.where).toHaveBeenCalledTimes(1);
+    expect(query.where).toHaveBeenCalledTimes(2);
     expect(whereOp(0, "id", "eq")).toHaveBeenCalledWith("user-1");
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(users);
@@ -112,7 +113,7 @@ describe("getUserController.handle", () => {
 
     await controller.handle(mockReq({ name: "user-1" }), res);
 
-    expect(query.where).toHaveBeenCalledTimes(1);
+    expect(query.where).toHaveBeenCalledTimes(2);
     expect(whereOp(0, "name", "ilike")).toHaveBeenCalledWith("%user-1%");
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(users);
@@ -125,7 +126,7 @@ describe("getUserController.handle", () => {
 
     await controller.handle(mockReq({ email: "user-2@" }), res);
 
-    expect(query.where).toHaveBeenCalledTimes(1);
+    expect(query.where).toHaveBeenCalledTimes(2);
     expect(whereOp(0, "email", "ilike")).toHaveBeenCalledWith("%user-2@%");
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(users);
@@ -138,7 +139,7 @@ describe("getUserController.handle", () => {
 
     await controller.handle(mockReq({ profile: "ALMOXARIFE_CHEFE" }), res);
 
-    expect(query.where).toHaveBeenCalledTimes(1);
+    expect(query.where).toHaveBeenCalledTimes(2);
     expect(whereOp(0, "profile", "eq")).toHaveBeenCalledWith(
       "ALMOXARIFE_CHEFE",
     );
@@ -169,7 +170,7 @@ describe("getUserController.handle", () => {
 
     await controller.handle(mockReq({ active }), res);
 
-    expect(query.where).toHaveBeenCalledTimes(1);
+    expect(query.where).toHaveBeenCalledTimes(2);
     expect(whereOp(0, "active", "eq")).toHaveBeenCalledWith(expected);
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(users);
@@ -201,7 +202,7 @@ describe("getUserController.handle", () => {
       res,
     );
 
-    expect(query.where).toHaveBeenCalledTimes(3);
+    expect(query.where).toHaveBeenCalledTimes(4);
     expect(whereOp(0, "name", "ilike")).toHaveBeenCalledWith("%user%");
     expect(whereOp(1, "profile", "eq")).toHaveBeenCalledWith(
       "ALMOXARIFE_CHEFE",

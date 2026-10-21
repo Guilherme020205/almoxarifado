@@ -80,7 +80,7 @@ describe("editUserController", () => {
   it("ninguém promove alguém a ROOT", async () => {
     await expect(
       call({ profile: "ROOT" }, { requester: "ROOT" }).promise,
-    ).rejects.toThrow("Não é permitido alterar o perfil ROOT");
+    ).rejects.toThrow("Não é permitido promover usuário a ROOT");
   });
 
   it("não desativa o próprio usuário", async () => {
@@ -147,10 +147,11 @@ describe("editUserController", () => {
     expect(update).toHaveBeenCalledWith({ profile: "SUPERVISOR" });
   });
 
-  it("ROOT não altera o próprio perfil", async () => {
+  it("ROOT não edita a própria conta (nem a senha)", async () => {
     first.mockResolvedValue(alvo({ id: "1", profile: "ROOT", email: "rootstocknode" }));
     await expect(
-      call({ profile: "SUPERVISOR" }, { id: "1", sub: "1", requester: "ROOT" }).promise,
-    ).rejects.toMatchObject({ statusCode: 403 });
+      call({ password: "nova", passwordConfirm: "nova" }, { id: "1", sub: "1", requester: "ROOT" }).promise,
+    ).rejects.toThrow("O usuário ROOT não pode ser editado pelo sistema");
+    expect(update).not.toHaveBeenCalled();
   });
 });

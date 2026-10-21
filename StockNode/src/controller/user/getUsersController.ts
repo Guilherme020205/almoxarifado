@@ -41,6 +41,9 @@ class getUserController {
       query = query.where((u) => u.active.eq(active === "true"));
     }
 
+    // o ROOT é do suporte (RN27): nunca aparece na listagem, nem com ?profile=ROOT
+    query = query.where((u) => u.profile.neq("ROOT"));
+
     const users = await query.all();
 
     res.status(200).json(users);
