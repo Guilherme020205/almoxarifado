@@ -91,14 +91,17 @@ _(Lista inicial — pode crescer conforme novas telas/ações forem definidas. A
 **Ações:** Cadastrar, editar, inativar, excluir.
 
 **Campos:**
-| Campo | Tipo |
-|---|---|
-| Nome do tipo | Texto |
+| Campo | Tipo | Observação |
+|---|---|---|
+| Nome do tipo | Texto | Obrigatório, único (RN32) |
+| Descrição | Texto | Obrigatória |
 
 **Regras de negócio:**
 
 - RN05: Ao inativar um tipo, os itens vinculados a ele deixam de aparecer nas listagens.
 - RN06: Só é possível excluir um tipo se não houver nenhum item vinculado a ele (ativo ou inativo). Com itens vinculados, a saída é inativar (RN30).
+- RN32: O nome do tipo é único, sem diferenciar maiúsculas de minúsculas e ignorando espaços nas pontas (`Papelaria`, `papelaria` e ` Papelaria ` são o mesmo tipo). Nome repetido é recusado com HTTP 409. A checagem é feita na aplicação e o banco tem `@unique` no nome como segunda trava (pega cadastros simultâneos com o mesmo nome exato).
+- RN33: Todo tipo é criado ativo; inativar é uma ação de edição. Nome e descrição são obrigatórios (só espaços conta como vazio).
 
 ### 3.2 Item
 
@@ -111,7 +114,7 @@ _(Lista inicial — pode crescer conforme novas telas/ações forem definidas. A
 **Campos:**
 | Campo | Tipo | Observação |
 |---|---|---|
-| Nome do item | Texto | |
+| Nome do item | Texto | Único (RN34) |
 | Tipo do item | Referência | Vínculo com Tipo de Item |
 | Quantidade em estoque | Número | Disponível para novo pedido |
 | Quantidade emprestada | Número | Calculado a partir dos pedidos em aberto |
@@ -121,6 +124,7 @@ _(Lista inicial — pode crescer conforme novas telas/ações forem definidas. A
 - RN07: Item inativo não aparece na lista de itens disponível dentro do modal de novo pedido.
 - RN08: Item inativo continua aparecendo na listagem geral de itens (a lista de itens mostra inativos).
 - RN09: Item só pode ser excluído se nunca foi usado em nenhum pedido (em qualquer status, inclusive Cancelado) — a exclusão serve para corrigir cadastros feitos por engano. Item com histórico de pedidos só pode ser inativado — mesmo com unidades emprestadas em pedidos ativos. Um item inativo continua podendo ser devolvido normalmente (aparece nos pedidos já existentes), só não pode ser escolhido em pedidos novos. A quantidade emprestada continua sendo controlada normalmente até zerar.
+- RN34: O nome do item é único em todo o sistema (não só dentro do tipo), com a mesma regra da RN32: sem diferenciar maiúsculas/minúsculas, ignorando espaços nas pontas, HTTP 409 se repetido, e `@unique` no banco como segunda trava.
 
 ---
 

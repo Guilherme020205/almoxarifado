@@ -750,7 +750,13 @@
                   "id"
                 ]
               },
-              "uniques": []
+              "uniques": [
+                {
+                  "columns": [
+                    "name"
+                  ]
+                }
+              ]
             },
             "itemsPerOrder": {
               "columns": {
@@ -1009,7 +1015,13 @@
                   "id"
                 ]
               },
-              "uniques": []
+              "uniques": [
+                {
+                  "columns": [
+                    "name"
+                  ]
+                }
+              ]
             },
             "user": {
               "checks": [
@@ -1116,7 +1128,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "aa8bc70dd04fe74d07cbe9e97fe8ab089e12711eccf7213146f8a8cafd5d2697"
+    "storageHash": "ef5c07c42592aef896c717e212d64ce7d44a403d3fc8dc81a7b0b46bf719d148"
   },
   "execution": {
     "executionHash": "5fa9d197bcdb0811f696c1caea80005025dd280f8bba8b3751510daa5148c0eb",

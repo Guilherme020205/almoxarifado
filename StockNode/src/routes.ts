@@ -19,13 +19,21 @@ const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 10 });
 
 router.post("/login", loginLimiter, new loginController().handle);
 
-const canManageUsers = [isAuthenticated, requireProfile("ROOT", "SUPERVISOR")];
+const permissionLevelOne = [
+  isAuthenticated,
+  requireProfile("ROOT", "SUPERVISOR"),
+];
+
+const permissionLevelTwo = [
+  isAuthenticated,
+  requireProfile("ROOT", "SUPERVISOR", "ALMOXARIFE_CHEFE"),
+];
 
 router.get("/user", isAuthenticated, new getUserController().handle);
-router.post("/user", canManageUsers, new createUserController().handle);
+router.post("/user", permissionLevelOne, new createUserController().handle);
 router.patch("/user/:id", isAuthenticated, new editUserController().handle);
 
-router.post("/typeitem", new createTypeController().handle);
+router.post("/typeitem", permissionLevelTwo, new createTypeController().handle);
 
 router.get("/", (req: Request, res: Response) => {
   return res.json({ status: "Online" });

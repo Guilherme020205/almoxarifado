@@ -27,7 +27,7 @@ model User {
 
 model TypeItem {
   id          String            @id @default(uuid())
-  name        String
+  name        String            @unique
   description String
   active      Boolean           @default(true)
   createdAt   TimestamptzString @default(now())
@@ -37,7 +37,7 @@ model TypeItem {
 
 model Item {
   id             String            @id @default(uuid())
-  name           String
+  name           String            @unique
   typeItemId     String
   typeItem       TypeItem          @relation(fields: [typeItemId], references: [id])
   qntInStock     Int               @default(0)
