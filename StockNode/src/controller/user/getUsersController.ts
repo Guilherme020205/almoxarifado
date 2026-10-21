@@ -43,10 +43,6 @@ class getUserController {
 
     const users = await query.all();
 
-    if (users.length === 0) {
-      throw new HttpError(200, "nenhum usuário encontrado");
-    }
-
     res.status(200).json(users);
   }
 }
