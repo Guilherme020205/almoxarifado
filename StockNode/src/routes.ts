@@ -10,6 +10,8 @@ import { createUserController } from "./controller/user/createUserController";
 import { getUserController } from "./controller/user/getUsersController";
 import { editUserController } from "./controller/user/editUserController";
 
+import { createTypeController } from "./controller/typeItem/createTypeController";
+
 const router = Router();
 
 // 10 tentativas por IP a cada 15 min
@@ -22,6 +24,8 @@ const canManageUsers = [isAuthenticated, requireProfile("ROOT", "SUPERVISOR")];
 router.get("/user", canManageUsers, new getUserController().handle);
 router.post("/user", canManageUsers, new createUserController().handle);
 router.patch("/user/:id", isAuthenticated, new editUserController().handle);
+
+router.post("/typeitem", new createTypeController().handle);
 
 router.get("/", (req: Request, res: Response) => {
   return res.json({ status: "Online" });
