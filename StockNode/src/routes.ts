@@ -10,6 +10,7 @@ import { createUserController } from "./controller/user/createUserController";
 import { getUserController } from "./controller/user/getUsersController";
 import { editUserController } from "./controller/user/editUserController";
 
+import { getTypeController } from "./controller/typeItem/getTypeController";
 import { createTypeController } from "./controller/typeItem/createTypeController";
 
 const router = Router();
@@ -33,6 +34,7 @@ router.get("/user", isAuthenticated, new getUserController().handle);
 router.post("/user", permissionLevelOne, new createUserController().handle);
 router.patch("/user/:id", isAuthenticated, new editUserController().handle);
 
+router.get("/typeitem", isAuthenticated, new getTypeController().handle);
 router.post("/typeitem", permissionLevelTwo, new createTypeController().handle);
 
 router.get("/", (req: Request, res: Response) => {
