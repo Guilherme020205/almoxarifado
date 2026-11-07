@@ -1,11 +1,39 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Este arquivo fornece orientações ao Claude Code
+para trabalhar neste repositório.
 
-Sistema web de almoxarifado (usuários/permissões, tipos de item, itens e empréstimos). Tudo vive em `projects/`:
+## Contexto do projeto
 
-- `projects/StockNode/` — backend (Node + TypeScript + Express 5 + Prisma ORM 8 / Postgres). Comandos, fluxo do banco e arquitetura estão em `projects/StockNode/CLAUDE.md`; rode os comandos `npm` dentro dessa pasta.
-- `projects/docs/levantamento-requisitos-almoxarifado.md` — especificação de negócio (matriz de permissões por perfil, regras de itens e pedidos). É a fonte de verdade para regras ao implementar novas rotas.
-- `projects/imagens/` — ícones SVG e logos (assets para o futuro frontend; ainda não há frontend no repo).
+Sistema web de almoxarifado (usuários, permissões,
+tipos de item, itens e empréstimos).
 
-Código, comentários, mensagens de erro e docs são em português.
+Tudo está organizado em `projects/`:
+
+- `projects/StockNode/`: backend Node.js, TypeScript,
+  Express 5, Prisma e PostgreSQL.
+- `projects/docs/`: documentação e requisitos do negócio.
+- `projects/imagens/`: logos e ícones SVG.
+
+Os comandos npm devem ser executados dentro
+da pasta correspondente ao projeto.
+
+Código, comentários, mensagens de erro e documentação
+devem ser escritos em português.
+
+## Instruções de trabalho
+
+- Analise a estrutura existente antes de modificar arquivos.
+- Respeite a arquitetura e os padrões existentes.
+- Não tome decisões de negócio por conta própria.
+- Consulte as regras específicas disponíveis em `.claude/rules/`.
+- Informe alterações e resultados ao finalizar as tarefas.
+
+## Regras obrigatórias
+
+As regras abaixo devem ser respeitadas durante todo o desenvolvimento:
+
+- Cybersecurity `.claude/rules/cybersecurity.md`
+- Git e commits: `.claude/rules/git.md`
+- Qualidade e testes: `.claude/rules/testing.md`
+- Documentação e regras de negócio: `.claude/rules/business-rules.md`
