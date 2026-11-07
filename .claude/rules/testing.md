@@ -18,7 +18,7 @@ paths:
 - Após realizar alterações, execute os testes relacionados aos arquivos e funcionalidades modificados.
 - Execute também os testes novos ou atualizados durante a tarefa.
 - Não é necessário executar toda a suíte de testes do projeto a cada alteração.
-- Execute todos os testes do projeto somente quando solicitado explicitamente pelo usuário.
+- Execute todos os testes do projeto somente quando solicitado explicitamente pelo usuário ou quando uma rule, skill ou agent específico da área mandar rodar a suíte completa (ex.: skill `nova-rota`).
 - Se identificar que uma alteração pode afetar outras funcionalidades, informe essa possibilidade, mas não execute toda a suíte automaticamente.
 
 ## 3. Relatório de validação
